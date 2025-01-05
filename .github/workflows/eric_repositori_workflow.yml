@@ -35,7 +35,7 @@ jobs:
         with:
           continue-on-error: true
       - name: Save test results
-        run: echo "Cypress outcome: ${{ job.status }}" > result.txt
+        run: echo "Cypress outcome: ${{ steps.<step-id>.outcome }}" > result.txt
       - name: Upload test results
         uses: actions/upload-artifact@v3
         with:
