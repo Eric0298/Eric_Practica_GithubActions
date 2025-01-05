@@ -77,7 +77,8 @@ jobs:
           git config --local user.name "Eric0298"
           git add .
           git commit -m "Update README with test badge"
-          git push
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
+
 
   Deploy_job:
     needs: Cypress_job
