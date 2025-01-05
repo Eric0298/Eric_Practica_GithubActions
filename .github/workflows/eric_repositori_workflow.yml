@@ -36,7 +36,11 @@ jobs:
         with:
           continue-on-error: true
       - name: Save test results
-        run: echo "Cypress outcome: ${{ steps.cypress-run.conclusion }}" > result.txt
+        run: |
+          if [[ ${{ steps.cypress-run.outcome }} == 'success' ]]; then
+            echo "success" > result.txt
+          else
+            echo "failure" > result.txt
       - name: Upload test results
         uses: actions/upload-artifact@v3
         with:
@@ -56,7 +60,6 @@ jobs:
       - name: Generate badge output
         id: badge
         run: |
-          # Leer el archivo result.txt y generar el badge correspondiente
           RESULT=$(cat result.txt)
           if [[ "$RESULT" == "success" ]]; then
             badge="![Success](https://img.shields.io/badge/tested%20with-Cypress-04C38E.svg)"
@@ -67,7 +70,6 @@ jobs:
           echo "badge_url=$badge" >> $GITHUB_ENV
       - name: Update README with badge
         run: |
-          # Reemplazar el texto "RESULTAT DELS ÚLTIMS TESTS" con el badge correspondiente
           sed -i '/RESULTAT DELS ÚLTIMS TESTS/ {n; s|.*|'"$badge_url"'|;}' README.md
           
           git config --local user.email "actions@github.com"
@@ -89,8 +91,8 @@ jobs:
           vercel-args: "--prod"
 
   Notification_job:
-    needs: [Linter_job, Cypress_job, Add_badge_job, Deploy_job]
     runs-on: ubuntu-latest
+    needs: [Linter_job, Cypress_job, Add_badge_job, Deploy_job]
     steps:
       - name: Send email notification
         uses: dawidd6/action-send-mail@v3
