@@ -103,6 +103,7 @@ jobs:
           server_port: 465
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
+          from: ${{ secrets.EMAIL_USERNAME }} 
           subject: "Resultat del workflow executat"
           to: ${{ secrets.TOKEN_EMAIL }}
           body: |
