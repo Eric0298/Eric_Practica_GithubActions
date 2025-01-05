@@ -1,0 +1,108 @@
+name: eric_repositori_workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  Linter_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm install
+      - name: Run linter
+        run: npm run lint
+
+  Cypress_job:
+    needs: Linter_job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm install
+      - name: Start server
+        run: npm run dev &
+        env:
+          CI: true
+      - name: Wait for server to be ready
+        run: npx wait-on http://localhost:3000
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v5
+        with:
+          continue-on-error: true
+      - name: Save test results
+        run: echo "Cypress outcome: ${{ job.status }}" > result.txt
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-results
+          path: result.txt
+
+  Add_badge_job:
+    needs: Cypress_job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Download test results
+        uses: actions/download-artifact@v3
+        with:
+          name: cypress-results
+      - name: Generate badge output
+        id: badge
+        run: |
+          # Leer el archivo result.txt y generar el badge correspondiente
+          RESULT=$(cat result.txt)
+          if [[ "$RESULT" == "success" ]]; then
+            badge="![Success](https://img.shields.io/badge/tested%20with-Cypress-04C38E.svg)"
+          else
+            badge="![Failure](https://img.shields.io/badge/test-failure-red)"
+          fi
+          echo "cypress_outcome=$RESULT" >> $GITHUB_ENV
+          echo "badge_url=$badge" >> $GITHUB_ENV
+      - name: Update README with badge
+        run: |
+          # Reemplazar el texto "RESULTAT DELS ÚLTIMS TESTS" con el badge correspondiente
+          sed -i '/RESULTAT DELS ÚLTIMS TESTS/ {n; s|.*|'"$badge_url"'|;}' README.md
+          
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add README.md
+          git commit -m "Update README with test badge"
+          git push
+
+  Deploy_job:
+    needs: Cypress_job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-args: "--prod"
+
+  Notification_job:
+    runs-on: ubuntu-latest
+    needs: [Linter_job, Cypress_job, Add_badge_job, Deploy_job]
+    steps:
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Resultat del workflow executat"
+          to: ${{ secrets.TOKEN_EMAIL }}
+          body: |
+            S'ha realitzat un push en la branca main amb els següents resultats:
+            - Linter_job: ${{ needs.Linter_job.result }}
+            - Cypress_job: ${{ needs.Cypress_job.result }}
+            - Add_badge_job: ${{ needs.Add_badge_job.result }}
+            - Deploy_job: ${{ needs.Deploy_job.result }}
