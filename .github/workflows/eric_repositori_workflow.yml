@@ -37,10 +37,11 @@ jobs:
           continue-on-error: true
       - name: Save test results
         run: |
-          if [[ ${{ steps.cypress-run.outcome }} == success ]]; then
+          if [ "${{ steps.cypress-run.outcome }}" = "success" ]; then
             echo "success" > result.txt
           else
             echo "failure" > result.txt
+          fi
       - name: Upload test results
         uses: actions/upload-artifact@v3
         with:
