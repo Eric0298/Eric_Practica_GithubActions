@@ -20,7 +20,7 @@ describe("Test de endpoints", () => {
       cy.request("POST", "api/users", {
         name: testName,
         lastName: testLastName,
-        email: `${testName}@gmai.com`,
+        email: `${testName}@gmail.com`,
       }).then((response) => {
         expect(response.body).to.have.property("greeting", `Hello ${testName}`);
       });
