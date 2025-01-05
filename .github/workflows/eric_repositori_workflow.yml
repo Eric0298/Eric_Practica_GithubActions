@@ -75,7 +75,7 @@ jobs:
           
           git config --local user.email "ericmancebo6950@gmail.com"
           git config --local user.name "Eric0298"
-          git add
+          git add .
           git commit -m "Update README with test badge"
           git push
 
