@@ -36,7 +36,7 @@ jobs:
         with:
           continue-on-error: true
       - name: Save test results
-        run: echo "Cypress outcome: ${{ job.status }}" > result.txt
+        run: echo "Cypress outcome: ${{ steps.cypress-run.outcome }}" > result.txt
       - name: Upload test results
         uses: actions/upload-artifact@v3
         with:
@@ -89,8 +89,8 @@ jobs:
           vercel-args: "--prod"
 
   Notification_job:
-    runs-on: ubuntu-latest
     needs: [Linter_job, Cypress_job, Add_badge_job, Deploy_job]
+    runs-on: ubuntu-latest
     steps:
       - name: Send email notification
         uses: dawidd6/action-send-mail@v3
