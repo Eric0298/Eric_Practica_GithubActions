@@ -73,9 +73,9 @@ jobs:
         run: |
           sed -i '/RESULTAT DELS ÚLTIMS TESTS/ {n; s|.*|'"$badge_url"'|;}' README.md
           
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git add README.md
+          git config --local user.email "ericmancebo6950@gmail.com"
+          git config --local user.name "Eric0298"
+          git add
           git commit -m "Update README with test badge"
           git push
 
